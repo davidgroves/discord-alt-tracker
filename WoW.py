@@ -166,6 +166,8 @@ def characters_as_ascii_table(characters: list[WoWCharacter]) -> str:
     table["Faction"] = factions
     table["Realm"] = realms
     table["Specs"] = specs
+    
+    table.sort(["Realm", "Name"])
 
     lines = table.pformat_all(align="<")
 
