@@ -26,6 +26,16 @@ The original use case was for World of Warcraft guilds and other organisations t
 - Setup a Python 3.10+ VirtualEnv, and install the requirements in requirements.txt.
 - Run bot.py from within the VirtualEnv.
 
+### inotify limits
+
+On Ubuntu 22.04, I couldn't run with the env variable `DAT_RELOAD_ON_CODE_EDIT=1` on by default due to system limits on files to watch with inotify.
+I solved this with
+
+```bash
+$ sudo echo "fs.inotify.max_user_instances = 1048576" > /etc/sysctl.d/80-inotify.conf
+$ sudo service procps force-reload
+```
+
 ## Known Issues
 
 - No checking for multiple characters with same name on same realm.

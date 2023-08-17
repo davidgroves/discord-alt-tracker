@@ -5,6 +5,8 @@ import sys
 import blizzardapi
 import cachetools
 
+import WoW
+
 
 def get_api_client():
     client_id = os.getenv("DAT_BLIZZARD_CLIENTID", None)
@@ -29,7 +31,7 @@ def api_request_classic_realms(region: str, locale: str) -> str:
     return resp
 
 
-def get_classic_realms_from_blizzard(region: str, locale: str) -> list[str]:
+def classic_realms(region: str, locale: str) -> list[str]:
     realms = []
     resp = api_request_classic_realms(region=region, locale=locale)
 
@@ -40,10 +42,11 @@ def get_classic_realms_from_blizzard(region: str, locale: str) -> list[str]:
     return realms
 
 
-@cachetools.cached(cachetools.TTLCache(maxsize=1024 * 1024, ttl=300))
-def get_all_classic_realms() -> list[str]:
+@cachetools.cached(cachetools.TTLCache(maxsize=1024 * 1024, ttl=3600))
+def all_classic_realms() -> list[WoW.Realm]:
     realms = []
-    # Should be ("tw", "zh_TW") as well, but blizzard API was busted and returning non-JSON response.
+    # Should be ("tw", "zh_TW") as well, but blizzard API
+    # was busted and returning non-JSON response.
     for region, locale in [("eu", "en_GB"), ("us", "en_US"), ("kr", "ko_KR")]:
-        realms.extend(get_classic_realms_from_blizzard(region=region, locale=locale))
+        realms.extend(classic_realms(region=region, locale=locale))
     return realms

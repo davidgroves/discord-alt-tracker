@@ -1,35 +1,22 @@
+import pydantic
+
 import dataclasses
 import enum
 import typing
 
-import dataclasses_json
-from astropy.io import ascii
+import beanie
 from astropy.table import Table
 
-
-class WoWFaction(str, enum.Enum):
-    ALLIANCE = "ALLIANCE"
-    HORDE = "HORDE"
+Realm = str
+CharName = str
 
 
-class WoWClass(str, enum.Enum):
-    WARRIOR = "WARRIOR"
-    PALADIN = "PALADIN"
-    DEATHKNIGHT = "DEATHKNIGHT"
-    HUNTER = "HUNTER"
-    SHAMAN = "SHAMAN"
-    ROGUE = "ROGUE"
-    DRUID = "DRUID"
-    MAGE = "MAGE"
-    WARLOCK = "WARLOCK"
-    PRIEST = "PRIEST"
+class Faction(str, enum.Enum):
+    ALLIANCE = "Alliance"
+    HORDE = "Horde"
 
 
-WoWRealm = str
-WoWCharName = str
-
-
-class WoWSpec(str, enum.Enum):
+class Spec(str, enum.Enum):
     # Warrior
     PROTECTION = "PROTECTION"
     FURY = "FURY"
@@ -77,96 +64,97 @@ class WoWSpec(str, enum.Enum):
 
 
 @dataclasses.dataclass(frozen=True)
-class WoWClass:
+class Class:
     name: str
-    valid_specs: tuple[WoWSpec, ...]
+    valid_specs: tuple[Spec, ...]
 
 
-WoWClasses: dict[str, WoWClass] = {
-    "Warrior": WoWClass(
-        name="Warrior", valid_specs=(WoWSpec.PROTECTION, WoWSpec.ARMS, WoWSpec.FURY)
+Classes: dict[str, Class] = {
+    "Warrior": Class(
+        name="Warrior", valid_specs=(Spec.PROTECTION, Spec.ARMS, Spec.FURY)
     ),
-    "Paladin": WoWClass(
+    "Paladin": Class(
         name="Paladin",
-        valid_specs=(WoWSpec.PROTECTION, WoWSpec.HOLY, WoWSpec.RETRIBUTION),
+        valid_specs=(Spec.PROTECTION, Spec.HOLY, Spec.RETRIBUTION),
     ),
-    "DeathKnight": WoWClass(
+    "DeathKnight": Class(
         name="DeathKnight",
         valid_specs=(
-            WoWSpec.FROST_DPS,
-            WoWSpec.FROST_TANK,
-            WoWSpec.BLOOD_DPS,
-            WoWSpec.BLOOD_TANK,
-            WoWSpec.UNHOLY_DPS,
-            WoWSpec.UNHOLY_TANK,
+            Spec.FROST_DPS,
+            Spec.FROST_TANK,
+            Spec.BLOOD_DPS,
+            Spec.BLOOD_TANK,
+            Spec.UNHOLY_DPS,
+            Spec.UNHOLY_TANK,
         ),
     ),
-    "Hunter": WoWClass(
+    "Hunter": Class(
         name="Hunter",
-        valid_specs=(WoWSpec.SURVIVAL, WoWSpec.MARKSMANSHIP, WoWSpec.BEASTMASTER),
+        valid_specs=(Spec.SURVIVAL, Spec.MARKSMANSHIP, Spec.BEASTMASTER),
     ),
-    "Shaman": WoWClass(
+    "Shaman": Class(
         name="Shaman",
-        valid_specs=(WoWSpec.RESTORATION, WoWSpec.ELEMENTAL, WoWSpec.ENHANCEMENT),
+        valid_specs=(Spec.RESTORATION, Spec.ELEMENTAL, Spec.ENHANCEMENT),
     ),
-    "Rogue": WoWClass(
+    "Rogue": Class(
         name="Rogue",
-        valid_specs=(WoWSpec.ASSASSINATION, WoWSpec.COMBAT, WoWSpec.SUBTLETY),
+        valid_specs=(Spec.ASSASSINATION, Spec.COMBAT, Spec.SUBTLETY),
     ),
-    "Druid": WoWClass(
+    "Druid": Class(
         name="Druid",
         valid_specs=(
-            WoWSpec.FERAL_DPS,
-            WoWSpec.FERAL_TANK,
-            WoWSpec.BALANCE,
-            WoWSpec.RESTORATION,
+            Spec.FERAL_DPS,
+            Spec.FERAL_TANK,
+            Spec.BALANCE,
+            Spec.RESTORATION,
         ),
     ),
-    "Mage": WoWClass(
+    "Mage": Class(
         name="Mage",
-        valid_specs=(WoWSpec.FROST, WoWSpec.FIRE, WoWSpec.FROSTFIRE, WoWSpec.ARCANE),
+        valid_specs=(Spec.FROST, Spec.FIRE, Spec.FROSTFIRE, Spec.ARCANE),
     ),
-    "Warlock": WoWClass(
+    "Warlock": Class(
         name="Warlock",
-        valid_specs=(WoWSpec.ASSASSINATION, WoWSpec.DEMONOLOGY, WoWSpec.DESTRUCTION),
+        valid_specs=(Spec.ASSASSINATION, Spec.DEMONOLOGY, Spec.DESTRUCTION),
     ),
-    "Priest": WoWClass(
-        name="Priest", valid_specs=(WoWSpec.HOLY, WoWSpec.DISCIPLINE, WoWSpec.SHADOW)
+    "Priest": Class(
+        name="Priest", valid_specs=(Spec.HOLY, Spec.DISCIPLINE, Spec.SHADOW)
     ),
 }
 
-# @dataclasses.dataclass
-# class WoWCharacter(dataclasses_json.DataClassJsonMixin):
-#     name: typing.Optional[WoWCharName] = dataclasses.field
-#     realm: typing.Optional[WoWRealm] = dataclasses.field
-#     faction: typing.Optional[WoWFaction] = dataclasses.field
-#     wowclass: typing.Optional[WoWClass] = dataclasses.field
-#     specs: typing.Optional[list[WoWSpec]] = dataclasses.field(default_factory=lambda: list)
 
-
-@dataclasses.dataclass
-class WoWCharacter(dataclasses_json.DataClassJsonMixin):
+class Character(beanie.Document):
+    discord_user_id: str
     name: typing.Optional[str] = ""
     realm: typing.Optional[str] = ""
     faction: typing.Optional[str] = ""
     wowclass: typing.Optional[str] = ""
-    specs: typing.Optional[list[str]] = ""
+    specs: list[typing.Optional[str]] = ""
 
+    @property
+    def name_at_realm(self) -> str:
+        return f"{self.name} @ {self.realm}"
 
-def characters_as_ascii_table(characters: list[WoWCharacter]) -> str:
+    @property
+    def comma_seperated_specs(self) -> str:
+        return " or ".join([x.capitalize() for x in self.specs])
+    
+
+def characters_as_ascii_table(characters: list[Character]) -> str:
     names = [character.name for character in characters]
     classes = [character.wowclass for character in characters]
     factions = [character.faction for character in characters]
     realms = [character.realm for character in characters]
-    specs = [character.specs for character in characters]
+    specs = [character.comma_seperated_specs for character in characters]
 
     table = Table()
     table["Name"] = names
     table["Class"] = classes
+    table["Specs"] = specs
     table["Faction"] = factions
     table["Realm"] = realms
-    table["Specs"] = specs
     
+
     table.sort(["Realm", "Name"])
 
     lines = table.pformat_all(align="<")

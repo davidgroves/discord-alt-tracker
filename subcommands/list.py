@@ -1,6 +1,5 @@
 import interactions
 
-import database
 import WoW
 
 
@@ -12,15 +11,18 @@ class AltList(interactions.Extension):
         name="altlist", description="List a discord users character names."
     )
     @interactions.slash_option(
-        name="discord_name",
-        description="The Discord Name to list the alts for. Can also right click user and select Apps -> List Alts",
+        name="discord_user",
+        description="List alts for this discord user. Can also right click user.",
         required=True,
         opt_type=interactions.OptionType.USER,
     )
     async def command_list(
-        self, ctx: interactions.SlashContext, discord_name: interactions.User
+        self, ctx: interactions.SlashContext, discord_user: interactions.User
     ):
-        characters = database.get_all_characters(discord_user_id=ctx.user.id)
+        
+        characters = await WoW.Character.find_many(
+            WoW.Character.discord_user_id == str(discord_user.id))
+        ).to_list()
         ascii_table = WoW.characters_as_ascii_table(characters)
 
         await ctx.send(

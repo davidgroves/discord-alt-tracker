@@ -6,7 +6,6 @@ import sys
 
 import dotenv
 import interactions
-import pymongo
 
 
 def setup_cli() -> argparse.Namespace:
@@ -15,7 +14,8 @@ def setup_cli() -> argparse.Namespace:
         description="""
 Runs a discord bot which tracks characters alts in discord",
 Read README.md for how to setup the bot.
-The bot has no command line arguments, it reads all configuration for environment variables.    
+The bot has no command line arguments, it reads all 
+configuration for environment variables.    
 """,
     )
     return parser.parse_args()
@@ -40,10 +40,21 @@ def get_bot() -> interactions.Client:
         debug_scope=os.getenv("DAT_DEBUGSCOPE", interactions.Missing()),
     )
 
-    # READ CAREFULLY. This is ugly, but it loads all files in commands/ as interactions extensions.
-    for i in pathlib.Path("commands/").glob("*.py"):
-        logging.info(f"Loading extension: {i}")
-        bot.load_extension(str(i).replace("/", ".").rstrip(".py"))
+    # READ CAREFULLY. This is ugly, but it loads all files in these directories
+    # as interactions extensions.
+    for dir in [
+        pathlib.Path("commands/").glob("*.py"),
+        pathlib.Path("subcommands/").glob("*.py"),
+        pathlib.Path("context_menus/").glob("*.py"),
+    ]:
+        for file in dir:
+            logging.info(f"Loading extension: {file}")
+            bot.load_extension(str(file).replace("/", ".").rstrip(".py"))
+
+    # Sets up dev mode with autoreloading if env variable is configured.
+    if os.getenv("DAT_RELOAD_ON_CODE_EDIT"):
+        logging.info("Reloading modules on edit")
+        bot.load_extension("interactions.ext.jurigged")
 
     return bot
 
