@@ -1,9 +1,14 @@
+"""The /altlist command"""
+
 import interactions
 
-import WoW
+import models
+import wow
 
 
 class AltList(interactions.Extension):
+    """The /altlist command"""
+
     def __init__(self, client: interactions.Client):
         self.client: interactions.Client = client
 
@@ -19,11 +24,16 @@ class AltList(interactions.Extension):
     async def command_list(
         self, ctx: interactions.SlashContext, discord_user: interactions.User
     ):
-        
-        characters = await WoW.Character.find_many(
-            WoW.Character.discord_user_id == str(discord_user.id))
+        """The /altlist command
+
+        Args:
+            ctx: The interactions bot context for this command.
+            discord_user: The user that this command was run against.
+        """
+        characters = await wow.Character.find_many(
+            wow.Character.discord_user_id == models.DiscordUserID(discord_user.id)
         ).to_list()
-        ascii_table = WoW.characters_as_ascii_table(characters)
+        ascii_table = wow.characters_as_markdown(characters)
 
         await ctx.send(
             content=ascii_table,

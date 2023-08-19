@@ -43,7 +43,4 @@ security
   authorization: "enabled"
 ```
 
-5. Restart mongodb. On my Ubuntu 22.04 system, this was `sudo systemctl restart mongod`#
-
-
-
+5. Restart mongodb. On my Ubuntu 22.04 system, this was `sudo systemctl restart mongod`

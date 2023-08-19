@@ -1,11 +1,9 @@
-DAT_APPID=""
-DAT_PUBKEY=""
-DAT_TOKEN=""
-DAT_DEBUGSCOPE=""
-DAT_MONGOSTRING=""
-DAT_DEBUGLEVEL="DEBUG"
+# Required
+DAT_TOKEN=""                        # Discord Bot Connection Token.
+DAT_MONGOSTRING=""                  # Set to the MongoDB connection string to connect to the database.
+PYTHONDONTWRITEBYTECODE=1           # Don't write __pycache__ files.
 
-DAT_RELOAD_ON_CODE_EDIT=1
-DAT_DEBUGSCOPE=""
-
-PYTHONDONTWRITEBYTECODE=1
+# Optional (for Dev)
+DAT_DEBUGSCOPE=""                   # Set to your test servers guild_id in dev (for instant command updates). Leave blank in production.
+DAT_DEBUGLEVEL="DEBUG"              # Set the logging level.
+DAT_RELOAD_ON_CODE_EDIT=1           # If set, the bot will reload the main code and the extensions when the files change.

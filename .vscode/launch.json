@@ -18,6 +18,7 @@
             "request": "launch",
             "program": "bot.py",
             "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/src",
             "justMyCode": true
         }
     ]

@@ -15,14 +15,15 @@ import pymongo
 import blizzard_api
 import bot_setup
 import models
-import WoW
+import wow
 
 db: pymongo.MongoClient
 
 
 async def main():
+    """Main program entry point."""
     dotenv.load_dotenv()
-    bot_setup.get_logger(os.getenv("DAT_DEBUGLEVEL", "CRITICAL"))
+    bot_setup.get_logger()
     bot_setup.setup_cli()
     bot = bot_setup.get_bot()
     # Warms up the cache of the realms, so we don't stall on first request.
@@ -32,14 +33,14 @@ async def main():
     client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DAT_MONGOSTRING"))
     await beanie.init_beanie(
         database=client.DAT,
-        document_models=[WoW.Character, models.GuildDefaults],
+        document_models=[wow.Character, models.GuildDefaults],
     )
 
     # Start the scheduled tasks
     @aiocron.crontab("*/15 * * * *", start=True)
     async def _():
-        logging.debug("15min refresh for realms from blizzard API")
-        await blizzard_api.all_classic_realms()
+        logging.info("15min refresh for realms from blizzard API")
+        _ = blizzard_api.all_classic_realms()
 
     # Start the bot
     await bot.astart()

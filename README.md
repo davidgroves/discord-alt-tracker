@@ -16,7 +16,7 @@ The original use case was for World of Warcraft guilds and other organisations t
 
 ## How to invite to a server
 
-[Invite Link](https://discord.com/api/oauth2/authorize?client_id=1140082321152806922&permissions=0&scope=bot)
+[Invite Link](https://discord.com/api/oauth2/authorize?client_id=1142105149301604392&permissions=0&scope=bot)
 
 ## How to run the bot yourself.
 
